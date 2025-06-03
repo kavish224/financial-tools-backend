@@ -1,5 +1,5 @@
 # Use official Node.js LTS image
-FROM node:18
+FROM node:20
 
 # Create app directory
 WORKDIR /app
@@ -10,10 +10,11 @@ COPY package*.json ./
 # Install all dependencies
 RUN npm install
 # Generate Prisma client
-RUN npx prisma generate
-
 # Copy entire codebase into container
 COPY . .
+
+RUN npx prisma generate
+
 
 # Expose the backend port (update if not 5000)
 EXPOSE 3000
