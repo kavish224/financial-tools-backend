@@ -4,8 +4,10 @@ dotenv.config();
 
 import { readFileSync } from "fs";
 
-const serviceAccountPath ="/Users/kavishambani/Downloads/project1-5df84-firebase-adminsdk-zxs7s-1053f0bcc1.json";
-
+const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+if (!serviceAccountPath) {
+  throw new Error("FIREBASE_SERVICE_ACCOUNT_PATH is not defined in .env");
+}
 let serviceAccount;
 try {
   serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf8"));
