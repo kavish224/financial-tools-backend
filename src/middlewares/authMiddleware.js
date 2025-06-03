@@ -1,4 +1,4 @@
-import { verifyIdToken } from '../config/firebase.js';
+import { verifyIdToken, firebaseAdmin } from '../config/firebase.js';
 
 export const authenticateUser = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -8,10 +8,21 @@ export const authenticateUser = async (req, res, next) => {
 
   const idToken = authHeader.split(' ')[1];
   try {
-    const user = await verifyIdToken(idToken);
-    req.user = user; // Attach Firebase user data to the request
+    const decodedToken = await verifyIdToken(idToken, true);
+    const userRecord = await firebaseAdmin.auth().getUser(decodedToken.uid);
+    req.user = userRecord
     next();
   } catch (error) {
+    if (error.code === 'auth/id-token-expired') {
+      return res.status(401).json({ error: 'Token has expired, please log in again.' });
+    }    
+    console.error('Error authenticating user:', error);
     res.status(401).json({ error: 'Invalid or expired token' });
   }
+};
+export const authorizeRole = (allowedRoles) => (req, res, next) => {
+  if (!req.user || !allowedRoles.includes(req.user.role)) {
+    return res.status(403).json({ error: "Forbidden: You do not have permission" });
+  }
+  next();
 };
