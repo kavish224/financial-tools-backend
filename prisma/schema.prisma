@@ -7,21 +7,56 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Stock {
-  id        Int      @id @default(autoincrement())
-  name      String
-  symbol    String   @unique
-  price     Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-model User {
-  id          Int      @id @default(autoincrement())
-  firebaseUid String   @unique
-  email       String   @unique
-  name        String?
-  photoURL    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model StockSymbol {
+  id          Int                @id @default(autoincrement())
+  isin        String             @unique
+  symbol      String             @unique
+  companyName String?
+  industry    String?
+  series      String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  historicals HistoricalData1D[] @relation("SymbolToHistory")
 }
 
+model HistoricalData1D {
+  id           Int       @id @default(autoincrement())
+  symbol       String
+  date         DateTime
+  openPrice    Float?
+  closePrice   Float?
+  highPrice    Float?
+  lowPrice     Float?
+  volume       BigInt?
+  openInterest BigInt?
+  createdAt    DateTime  @default(now())
+
+  stockSymbol  StockSymbol @relation("SymbolToHistory", fields: [symbol], references: [symbol])
+
+  @@unique([symbol, date])
+  @@index([symbol])
+  @@index([date])
+}
+
+enum Role {
+  ADMIN
+  COMMON_USER
+}
+
+model User {
+  id                  Int       @id @default(autoincrement())
+  firebaseUid         String    @unique
+  email               String    @unique
+  name                String?
+  photoURL            String?
+  firebaseCreatedAt   DateTime
+  postgresCreatedAt   DateTime  @default(now())
+  lastLogin           DateTime?
+  loginCount          Int       @default(0)
+  isVerified          Boolean   @default(false)
+  phoneNumber         String?
+  dateOfBirth         DateTime?
+  role                Role      @default(COMMON_USER)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
