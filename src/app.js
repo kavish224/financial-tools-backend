@@ -21,6 +21,6 @@ app.use(bodyParser.json());
 app.get("/", (req, res) => {
   res.send("Welcome to the Stock Recommendation API!");
 });
-app.use("/api/profile", profileRoutes);
+app.use("/api/auth", profileRoutes);
 
 export { app };
