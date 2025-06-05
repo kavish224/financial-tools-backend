@@ -5,7 +5,7 @@ import morgan from "morgan";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import profileRoutes from './routes/profile.routes.js';
-
+import displayRoutes from './routes/display.routes.js';
 dotenv.config();
 const app = express();
 app.use(cors({
@@ -22,5 +22,5 @@ app.get("/", (req, res) => {
   res.send("Welcome to the Stock Recommendation API!");
 });
 app.use("/api/auth", profileRoutes);
-
+app.use("/api/data",displayRoutes)
 export { app };
