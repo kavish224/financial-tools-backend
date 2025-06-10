@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Install only locked versions of dependencies
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copy app source and generate Prisma client
 COPY . .
@@ -23,7 +23,7 @@ WORKDIR /app
 COPY --from=builder /app /app
 
 # Install only production dependencies
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
 
 # Use non-root user
 USER appuser
