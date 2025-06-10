@@ -1,23 +1,22 @@
-# Use official Node.js LTS image
-FROM node:20
+# Stage 1: Build dependencies and Prisma
+FROM node:20 AS builder
 
-# Create app directory
 WORKDIR /app
-
-# Copy dependency definitions
 COPY package*.json ./
 
-# Install all dependencies
-RUN npm install
-# Generate Prisma client
-# Copy entire codebase into container
-COPY . .
+RUN npm ci
 
+COPY . .
 RUN npx prisma generate
 
+# Stage 2: Production image
+FROM node:20-slim
 
-# Expose the backend port (update if not 5000)
+WORKDIR /app
+
+# Copy only what's needed
+COPY --from=builder /app /app
+RUN npm ci --omit=dev
+
 EXPOSE 3000
-
-# Start the app in production mode
 CMD ["node", "--experimental-json-modules", "src/index.js"]
