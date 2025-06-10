@@ -1,26 +1,34 @@
-# Stage 1: Build dependencies and Prisma
+# Stage 1: Build dependencies and Prisma client
 FROM node:20 AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Install only locked versions of dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 # Copy app source and generate Prisma client
 COPY . .
 RUN npx prisma generate
 
-# Stage 2: Production image
+# Stage 2: Production Image
 FROM node:20-slim
+
+# Create non-root user for better security
+RUN useradd --user-group --create-home --shell /bin/false appuser
 
 WORKDIR /app
 
-# Copy built app and dependencies
+# Copy built app from builder stage
 COPY --from=builder /app /app
 
-# Reinstall production dependencies only
-RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
+# Install only production dependencies
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Use non-root user
+USER appuser
 
 EXPOSE 3000
+
+# Change this if your entry point is different
 CMD ["node", "--experimental-json-modules", "src/index.js"]

@@ -3,7 +3,5 @@ npm-debug.log
 .env
 Dockerfile
 docker-compose.yml
-__pycache__/
-*.pyc
 .git/
 .gitignore
