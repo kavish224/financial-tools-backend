@@ -20,7 +20,7 @@ WORKDIR /app
 COPY --from=builder /app /app
 
 # Reinstall production dependencies only
-RUN npm ci --omit=dev || npm install --omit=dev
+RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
 
 EXPOSE 3000
 CMD ["node", "--experimental-json-modules", "src/index.js"]
