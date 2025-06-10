@@ -3,7 +3,10 @@ FROM node:20 AS builder
 
 WORKDIR /app
 
-# Install only locked versions of dependencies
+# Install OpenSSL for Prisma engine compatibility
+RUN apt-get update && apt-get install -y openssl
+
+# Install dependencies
 COPY package*.json ./
 RUN npm install
 
@@ -14,7 +17,10 @@ RUN npx prisma generate
 # Stage 2: Production Image
 FROM node:20-slim
 
-# Create non-root user for better security
+# Install OpenSSL again for runtime
+RUN apt-get update && apt-get install -y openssl
+
+# Create non-root user for security
 RUN useradd --user-group --create-home --shell /bin/false appuser
 
 WORKDIR /app
@@ -30,5 +36,4 @@ USER appuser
 
 EXPOSE 3000
 
-# Change this if your entry point is different
 CMD ["node", "--experimental-json-modules", "src/index.js"]
