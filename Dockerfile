@@ -2,10 +2,12 @@
 FROM node:20 AS builder
 
 WORKDIR /app
-COPY package*.json ./
 
+# Install dependencies
+COPY package*.json ./
 RUN npm install
 
+# Copy app source and generate Prisma client
 COPY . .
 RUN npx prisma generate
 
@@ -14,9 +16,11 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Copy only what's needed
+# Copy built app and dependencies
 COPY --from=builder /app /app
-RUN npm ci --omit=dev
+
+# Reinstall production dependencies only
+RUN npm ci --omit=dev || npm install --omit=dev
 
 EXPOSE 3000
 CMD ["node", "--experimental-json-modules", "src/index.js"]
