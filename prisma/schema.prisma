@@ -1,11 +1,11 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-1.1.x"]
 }
 
 model StockSymbol {
@@ -16,12 +16,12 @@ model StockSymbol {
   industry    String?
   series      String?
   createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  updatedAt   DateTime           @default(now()) @updatedAt
   historicals HistoricalData1D[] @relation("SymbolToHistory")
 }
 
 model HistoricalData1D {
-  id           Int       @id @default(autoincrement())
+  id           Int         @id @default(autoincrement())
   symbol       String
   date         DateTime
   openPrice    Float?
@@ -30,8 +30,7 @@ model HistoricalData1D {
   lowPrice     Float?
   volume       BigInt?
   openInterest BigInt?
-  createdAt    DateTime  @default(now())
-
+  createdAt    DateTime    @default(now())
   stockSymbol  StockSymbol @relation("SymbolToHistory", fields: [symbol], references: [symbol])
 
   @@unique([symbol, date])
@@ -39,25 +38,41 @@ model HistoricalData1D {
   @@index([date])
 }
 
+model User {
+  email             String    @unique
+  createdAt         DateTime  @default(now())
+  photoURL          String?
+  updatedAt         DateTime  @updatedAt
+  id                Int       @id @default(autoincrement())
+  firebaseUid       String    @unique
+  name              String?
+  dateOfBirth       DateTime?
+  firebaseCreatedAt DateTime
+  isVerified        Boolean   @default(false)
+  lastLogin         DateTime?
+  loginCount        Int       @default(0)
+  phoneNumber       String?
+  postgresCreatedAt DateTime  @default(now())
+  role              Role      @default(COMMON_USER)
+}
+
 enum Role {
   ADMIN
   COMMON_USER
 }
 
-model User {
-  id                  Int       @id @default(autoincrement())
-  firebaseUid         String    @unique
-  email               String    @unique
-  name                String?
-  photoURL            String?
-  firebaseCreatedAt   DateTime
-  postgresCreatedAt   DateTime  @default(now())
-  lastLogin           DateTime?
-  loginCount          Int       @default(0)
-  isVerified          Boolean   @default(false)
-  phoneNumber         String?
-  dateOfBirth         DateTime?
-  role                Role      @default(COMMON_USER)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+model SMA_Results {
+  id             Int      @id @default(autoincrement())
+  symbol         String
+  sma_period     Int
+  threshold_pct  Float
+  close_price    Float
+  sma_value      Float
+  deviation_pct  Float
+  date_generated DateTime @default(now())
+
+  @@index([sma_period])
+  @@index([sma_period, deviation_pct])
+  @@index([symbol])
+  @@map("SMA_Results") // exact DB table name
 }
