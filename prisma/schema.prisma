@@ -56,11 +56,6 @@ model User {
   role              Role      @default(COMMON_USER)
 }
 
-enum Role {
-  ADMIN
-  COMMON_USER
-}
-
 model SMA_Results {
   id             Int      @id @default(autoincrement())
   symbol         String
@@ -71,8 +66,13 @@ model SMA_Results {
   deviation_pct  Float
   date_generated DateTime @default(now())
 
-  @@index([sma_period])
-  @@index([sma_period, deviation_pct])
-  @@index([symbol])
-  @@map("SMA_Results") // exact DB table name
+  @@index([sma_period, deviation_pct], map: "sma_period_deviation_pct_idx")
+  @@index([sma_period], map: "sma_period_idx")
+  @@index([symbol], map: "symbol_idx")
+  @@map("SMA_Results")
+}
+
+enum Role {
+  ADMIN
+  COMMON_USER
 }

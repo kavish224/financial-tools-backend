@@ -88,13 +88,13 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "User_firebaseUid_key" ON "User"("firebaseUid");
 
 -- CreateIndex
-CREATE INDEX "SMA_Results_sma_period_idx" ON "SMA_Results"("sma_period");
+CREATE INDEX "sma_period_deviation_pct_idx" ON "SMA_Results"("sma_period", "deviation_pct");
 
 -- CreateIndex
-CREATE INDEX "SMA_Results_sma_period_deviation_pct_idx" ON "SMA_Results"("sma_period", "deviation_pct");
+CREATE INDEX "sma_period_idx" ON "SMA_Results"("sma_period");
 
 -- CreateIndex
-CREATE INDEX "SMA_Results_symbol_idx" ON "SMA_Results"("symbol");
+CREATE INDEX "symbol_idx" ON "SMA_Results"("symbol");
 
 -- AddForeignKey
 ALTER TABLE "HistoricalData1D" ADD CONSTRAINT "HistoricalData1D_symbol_fkey" FOREIGN KEY ("symbol") REFERENCES "StockSymbol"("symbol") ON DELETE RESTRICT ON UPDATE CASCADE;
