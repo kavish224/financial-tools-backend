@@ -106,10 +106,10 @@ dist
 
 # TernJS port file
 .tern-port
-
+docker-compose.yml
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
-
+/secrets
 # yarn v2
 .yarn/cache
 .yarn/unplugged
