@@ -14,14 +14,24 @@ export const n50 = async (req, res) => {
 
 export const getAvailableSMADates = async (req, res) => {
   try {
-    const dates = await prisma.sMA_Results.findMany({
-      distinct: ['date_generated'],
+    const rawDates = await prisma.sMA_Results.findMany({
       orderBy: { date_generated: 'desc' },
-      take: 7,
       select: { date_generated: true },
     });
 
-    res.json(dates.map(d => d.date_generated));
+    const seen = new Set();
+    const uniqueDates = [];
+
+    for (const { date_generated } of rawDates) {
+      const isoDate = new Date(date_generated).toISOString().split("T")[0];
+      if (!seen.has(isoDate)) {
+        seen.add(isoDate);
+        uniqueDates.push(isoDate);
+      }
+      if (uniqueDates.length >= 7) break;
+    }
+
+    res.json(uniqueDates);
   } catch (error) {
     console.error("Error fetching SMA dates:", error);
     res.status(500).json({ error: "Failed to fetch SMA dates" });
