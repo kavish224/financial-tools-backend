@@ -1,3 +1,4 @@
+import axios from "axios";
 import prisma from "../db/prisma.js";
 
 export const n50 = async (req, res) => {
@@ -104,3 +105,18 @@ export const sma = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch SMA data from DB" });
   }
 };
+
+export const customsma = async(req, res) => {
+    try {
+        const sma_period = 100;
+        const threshold_pct = 1;
+        const data = await axios.post(`${process.env.FLASK}/analytics/sma-nearby`,{
+            sma_period,
+            threshold_pct
+        });
+        res.status(200).json(data.data);
+    } catch (error) {
+        console.error("Error fetching sma data from flask", error);
+        res.status(500).json({error:"Failed to fetch SMA data from DB"});
+    }
+}
