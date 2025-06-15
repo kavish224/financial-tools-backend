@@ -20,7 +20,14 @@ app.use(helmet({
   contentSecurityPolicy: IS_PRODUCTION ? undefined : false,
   crossOriginEmbedderPolicy: false
 }));
-app.use(compression());
+app.use(compression({
+    level: 6,
+    threshold: 1024,
+    filter: (req, res) => {
+        if (req.headers['x-no-compression']) return false;
+        return compression.filter(req, res);
+    }
+}));
 app.use(requestLogger);
 const allowedOrigins = [
   'http://localhost:3000',
