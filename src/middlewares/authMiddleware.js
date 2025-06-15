@@ -1,28 +1,60 @@
 import { verifyIdToken } from '../config/firebase.js';
+import { ApiError } from '../utils/apiError.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { logger } from '../utils/logger.js';
 
-export const authenticateUser = async (req, res, next) => {
+export const authenticateUser = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  if (!authHeader?.startsWith('Bearer ')) {
+    throw new ApiError(401, 'Authorization header with Bearer token required');
   }
-
   const idToken = authHeader.split(' ')[1];
-
+  if (!idToken) {
+    throw new ApiError(401, 'Token not provided');
+  }
   try {
     const decodedToken = await verifyIdToken(idToken);
     req.user = decodedToken;
+    logger.debug('User authenticated successfully', {
+      uid: decodedToken.uid,
+      email: decodedToken.email
+    });
     next();
   } catch (error) {
-    if (error.code === 'auth/id-token-expired') {
-      return res.status(401).json({ error: 'Token has expired, please log in again.' });
+    logger.warn('Authentication failed', {
+      error: error.message,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+    if (error.message.includes('expired')) {
+      throw new ApiError(401, 'Token has expired, please log in again');
     }
-    console.error('Error verifying ID token:', error);
-    res.status(401).json({ error: 'Invalid or expired token' });
+    throw new ApiError(401, 'Invalid authentication token');
   }
-};
+});
 export const authorizeRole = (allowedRoles) => (req, res, next) => {
-  if (!req.user || !allowedRoles.includes(req.user.role)) {
-    return res.status(403).json({ error: "Forbidden: You do not have permission" });
+  if (!Array.isArray(allowedRoles) || allowedRoles.length === 0) {
+    throw new Error('allowedRoles must be a non-empty array');
   }
-  next();
+
+  return asyncHandler(async (req, res, next) => {
+    if (!req.user) {
+      throw new ApiError(401, 'User not authenticated');
+    }
+
+    const userRole = req.user.role || 'COMMON_USER';
+
+    if (!allowedRoles.includes(userRole)) {
+      logger.warn('Authorization failed', {
+        uid: req.user.uid,
+        userRole,
+        requiredRoles: allowedRoles,
+        endpoint: req.path
+      });
+
+      throw new ApiError(403, 'Insufficient permissions to access this resource');
+    }
+
+    next();
+  });
 };
