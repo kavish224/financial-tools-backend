@@ -31,6 +31,9 @@ COPY --from=builder /app /app
 # Install only production dependencies
 RUN npm install --omit=dev && npm cache clean --force
 
+# Ensure logs directory exists and is writable
+RUN mkdir -p /app/logs && chown -R appuser:appuser /app/logs
+
 # Use non-root user
 USER appuser
 
