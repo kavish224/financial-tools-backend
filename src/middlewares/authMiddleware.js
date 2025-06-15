@@ -2,36 +2,48 @@ import { verifyIdToken } from '../config/firebase.js';
 import { ApiError } from '../utils/apiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { logger } from '../utils/logger.js';
+import { getCachedToken } from '../utils/tokenCache.js';
 
 export const authenticateUser = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
+
   if (!authHeader?.startsWith('Bearer ')) {
     throw new ApiError(401, 'Authorization header with Bearer token required');
   }
+
   const idToken = authHeader.split(' ')[1];
   if (!idToken) {
     throw new ApiError(401, 'Token not provided');
   }
+
   try {
-    const decodedToken = await verifyIdToken(idToken);
+    console.time('token-verification');
+    const decodedToken = await getCachedToken(idToken, verifyIdToken);
+    console.timeEnd('token-verification');
+
     req.user = decodedToken;
+
     logger.debug('User authenticated successfully', {
       uid: decodedToken.uid,
-      email: decodedToken.email
+      email: decodedToken.email,
     });
+
     next();
   } catch (error) {
     logger.warn('Authentication failed', {
       error: error.message,
       ip: req.ip,
-      userAgent: req.get('User-Agent')
+      userAgent: req.get('User-Agent'),
     });
+
     if (error.message.includes('expired')) {
       throw new ApiError(401, 'Token has expired, please log in again');
     }
+
     throw new ApiError(401, 'Invalid authentication token');
   }
 });
+
 export const authorizeRole = (allowedRoles) => (req, res, next) => {
   if (!Array.isArray(allowedRoles) || allowedRoles.length === 0) {
     throw new Error('allowedRoles must be a non-empty array');
