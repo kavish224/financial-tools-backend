@@ -24,7 +24,7 @@ app.use(compression());
 app.use(requestLogger);
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://your-production-domain.com'
+  'https://tools.kavishambani.in'
 ];
 const corsOptions = {
   origin: function (origin, callback) {
