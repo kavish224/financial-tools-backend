@@ -6,8 +6,6 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import compression from "compression";
-import { rateLimit } from "express-rate-limit";
-import { logger } from "./utils/logger.js";
 import { IS_PRODUCTION } from "./constants.js";
 import { rateLimiters } from "./utils/rateLimiter.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
